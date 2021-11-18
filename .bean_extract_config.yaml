@@ -1,0 +1,61 @@
+developer:
+  debug: true
+disabled_importers:
+  - Alipay
+  - WeChatPay
+include: # Root include list, import as root configurations
+  - xxx.yaml
+importers:
+  -
+    name: WeChat
+    probe:
+      file_name: xxx # Regex is supported
+    table_header:
+      line: 17
+    strippers:
+      remove_first: 4
+      remove_last: 10
+      remove_before: "xxx" # Regex is allowed
+      remove_after: "xxx" # Regex is allowed
+      remove_before_and_include: "xxx" # Regex is allowed
+      remove_after_and_include: "xxx" # Regex is allowed
+    terminology_map:
+      交易時間: _timestamp
+    transformers:
+      -
+        patterns:
+        results:
+          currency: "CNY"
+      - 
+        name: ""
+        patterns:
+          objective: 全家
+          category: 商戶消費
+          good: ...
+          drcr: 支出 # debit, credit or unspecified
+          account: 招商銀行(xxxx) # 餘額寶，花唄
+          status: 交易成功 # 使用平臺原始文本
+          _amount: # Internal usage
+          _timestamp: # Internal usage
+          _system_txn_id: # Internal usage
+          _vendor_txn_id: # Internal usage
+          交易類型: # 使用平臺原始文本
+        results:
+          account: XXX
+          objective: $objective # $xxx is a variable derived from terminologies
+          good: $good
+          category: $category
+          date: $_date
+          time: $_time
+          amount: $_amount CNY
+          kind: credit
+extensions: # Only allows to extend importers
+  -
+    name: WeChat
+    transformers:
+      -
+        # ...
+extends_WeChat: # Only allows to extend specific importer
+  transformers:
+    -
+      # ...
