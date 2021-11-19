@@ -1,14 +1,30 @@
 #!/usr/bin/env python3
 
-import yaml
-import jsonpickle # For testing
-import os
-import typing
+
 from typing import List
 from typing import Dict
 from typing import Optional
 
+
+import yaml
+import os
+import datetime
+
+
+from beancount.core import data
+from beancount.core.amount import Amount
+from beancount.core.number import D as to_decimal
+from beancount.core.number import ZERO
+from beancount.ingest import importer
+from beancount.ingest import cache
+from beancount.utils.date_utils import parse_date_liberally
+
+
+import jsonpickle # For testing
+
+
 _DEFAULT_IMPORTER_COUNTER = 0
+
 
 def make_default_impoter_name() -> str:
   global _DEFAULT_IMPORTER_COUNTER
@@ -18,6 +34,7 @@ def make_default_impoter_name() -> str:
     name = 'Default-{c}'.format(c=(_DEFAULT_IMPORTER_COUNTER))
   _DEFAULT_IMPORTER_COUNTER += 1
   return name
+
 
 class Developer:
 
@@ -33,6 +50,7 @@ class Developer:
     
     return Developer(is_debug_enabled=is_debug_enabled)
 
+
 class Probe:
 
   @staticmethod
@@ -42,8 +60,10 @@ class Probe:
     
     return _FileNameProbe.make_with_serialization(serialization)
 
+
 class _NoProbe(Probe):
   pass
+
 
 class _FileNameProbe(Probe):
 
@@ -55,6 +75,7 @@ class _FileNameProbe(Probe):
     assert isinstance(file_name, str), 'file_name is {}'.format(type(file_name))
     self.file_name = file_name
 
+
 class TableHeader:
   
   @staticmethod
@@ -64,8 +85,10 @@ class TableHeader:
     
     return _LineSpecifiedTableHeader.make_with_serialization(serialization)
 
+
 class _NoTableHeader(TableHeader):
   pass
+
 
 class _LineSpecifiedTableHeader(TableHeader):
 
@@ -76,6 +99,7 @@ class _LineSpecifiedTableHeader(TableHeader):
   def __init__(self, line):
     assert isinstance(line, int)
     self.line = line
+
 
 class Stripper:
   
@@ -146,6 +170,7 @@ class _RemoveAfterPatternStripper(Stripper):
   def __init__(self, pattern: str, includes: bool):
     self.pattern = pattern
     self.includes = includes
+
 
 class Transformer:
   
@@ -259,16 +284,14 @@ class ImporterExtension(Importer):
       name = extracted_name
     assert name is not None, 'Importer extension may have a name.'
     assert isinstance(name, str)
-    probe = Probe.make_with_serialization(serialization.get('probe'))
-    table_header = TableHeader.make_with_serialization(serialization.get('table_header'))
     strippers = Stripper.make_strippers_with_serialization(serialization.get('strippers'))
     terminology_map = serialization.get('terminology_map', dict())
     transformers = Transformer.make_transformers_with_serialization(serialization.get('transformers'))
 
     return ImporterExtension(
       name, 
-      probe, 
-      table_header, 
+      None, 
+      None, 
       strippers, 
       terminology_map, 
       transformers
@@ -304,7 +327,7 @@ class Config:
   def make_with_serialization(serialization: Optional[Dict]) -> 'Config':
     if serialization is not None:
       developer = Developer.make_with_serialization(serialization.get('developer'))
-      disabled_importers_list = serialization.get('disabled_importers', list())
+      disabled_importers = serialization.get('disabled_importers', list())
       include_list = serialization.get('include', list())
       importers = Importer.make_importers(serialization.get('importers', list()))
       importer_extensions = ImporterExtension.make_importers_with_serialization(serialization.get('extensions', list()))
@@ -312,23 +335,23 @@ class Config:
       importer_extensions.extend(named_impoter_extensions)
     else:
       developer = Developer()
-      disabled_importers_list = list()
+      disabled_importers = list()
       include_list = list()
       importers = list()
       importer_extensions = list()
     
-    return Config(developer, disabled_importers_list, include_list, importers, importer_extensions)
+    return Config(developer, disabled_importers, include_list, importers, importer_extensions)
 
   def __init__(
     self, 
     developer: Developer, 
-    disabled_importers_list: List, 
+    disabled_importers: List, 
     include_list: List, 
     importers: List[Importer], 
     importer_extensions: List[ImporterExtension]
   ):
     self.developer = developer
-    self.disabled_importers_list = disabled_importers_list
+    self.disabled_importers = disabled_importers
     self.include_list = include_list
     self.importers = importers
     self.importer_extensions = importer_extensions
@@ -365,7 +388,7 @@ class Config:
     # referred by its include-lists.
     config.resolve()
 
-    self.disabled_importers_list.extend(config.disabled_importers_list)
+    self.disabled_importers.extend(config.disabled_importers)
 
     for each_importer in config.importers:
       existed_importer = next(filter(lambda i: i.name == each_importer.name, self.importers), None)
@@ -380,9 +403,60 @@ class Config:
           each_importer.extend_with_extension(each_importer_extension)
 
 
-def main():
+class BeanExtractImporter(importer.ImporterProtocol):
+  
+  def __init__(self, importer: Importer):
+    assert isinstance(importer, Importer)
+    self.importer = importer
+  
+  def name(self) -> str:
+    return self.importer.name
 
-  global cwd
+  def identify(self, file: cache._FileMemo) -> bool:
+    pass
+
+  def extract(self, file: cache._FileMemo, existing_entries: Optional[List[data.Balance]]=None) -> List[data.Balance]:
+    pass
+  
+  def file_date(self, file: cache._FileMemo) -> Optional[datetime.date]:
+    pass
+
+  @staticmethod
+  def make_importers() -> List['BeanExtractImporter']:
+    """
+    Makes importers from .bean_extract_config.yaml and pre-made 
+    configuration files.
+
+    Disabled importers would not be returned.
+
+    """
+    cwd = os.getcwd()
+
+    config_file_path = os.path.join(cwd, '.bean_extract_config.yaml')
+
+    paths = [config_file_path]
+
+    configs = list(filter(lambda x : x is not None, [Config.make_with_serialization_at_path(p) for p in paths]))
+    first_config: Optional['Config'] = None
+    for each_config in configs:
+      each_config.resolve()
+      if first_config is None:
+        first_config = each_config
+      else:
+        first_config.extend_with_config(each_config)
+
+    if first_config is None:
+      return list()
+    
+    global ROOT_CONFIG
+    ROOT_CONFIG = first_config
+
+    enabled_importers = filter(lambda i : i.name not in ROOT_CONFIG.disabled_importers, ROOT_CONFIG.importers)
+    
+    return [BeanExtractImporter(i) for i in enabled_importers]
+
+
+def main():
 
   cwd = os.getcwd()
 
@@ -394,5 +468,9 @@ def main():
 
   print(yaml.dump(yaml.load(reserialized_config, Loader=yaml.Loader), indent=2))
 
+
 if __name__ == '__main__':
   main()
+
+
+CONFIG = BeanExtractImporter.make_importers()
