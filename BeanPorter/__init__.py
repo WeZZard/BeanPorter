@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 
 import sys
 import logging
@@ -11,7 +11,7 @@ sys.path.append(".")
 
 from beancount.ingest.extract import extract
 
-from BeanExtractImporter import BeanExtractImporter
+from BeanPorter.BeanExtractImporter import BeanExtractImporter
 
 parser = argparse.ArgumentParser()
 
@@ -37,7 +37,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-if __name__ == '__main__':
+def main():
   extract(
     BeanExtractImporter.make_importers(args.config), 
     [args.file],
@@ -47,3 +47,6 @@ if __name__ == '__main__':
     mindate=None,
     ascending=args.ascending,
     hooks=None)
+
+if __name__ == '__main__':
+  main()

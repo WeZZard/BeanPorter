@@ -12,10 +12,11 @@ import chardet
 
 from beancount.ingest import importer
 from beancount.ingest import cache
+import BeanPorter
 
-from bxcml.BXCML import BXCML, Importer
+from BeanPorter.bxcml.BXCML import BXCML, Importer
 
-from BeanExtractContext import BeanExtractContext
+from BeanPorter.BeanExtractContext import BeanExtractContext
 
 
 def _make_converter_with_encoding(encoding: Optional[str]):
@@ -95,9 +96,9 @@ class BeanExtractImporter(importer.ImporterProtocol):
     Disabled importers would not be returned.
 
     """
-    cwd = os.getcwd()
+    module_dir = os.path.dirname(os.path.abspath(BeanPorter.__file__))
 
-    default_config_file = os.path.join(cwd, '.bean_extract_config.yaml')
+    default_config_file = os.path.join(module_dir, 'bean_extract_config.yaml')
 
     paths = [default_config_file]
 
