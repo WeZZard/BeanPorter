@@ -131,7 +131,7 @@ class CompoundExpr(AnyExpr):
     space: Token, 
     rhs: 'CompoundExpr'
   ) -> 'CompoundExpr':
-    elements: List[CompoundElement] = {}
+    elements: List[CompoundElement] = []
     elements.append(CompoundElementExpr(lhs))
     elements.append(CompoundElementSpace(space))
     elements.extend(rhs.elements)

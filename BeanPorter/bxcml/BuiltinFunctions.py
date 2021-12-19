@@ -18,6 +18,8 @@ class BuiltinFunction(object):
       return BuiltinFunctionDate()
     if name == 'time':
       return BuiltinFunctionTime()
+    if name == 'dy':
+      return BuiltinFunctionDY()
     raise Exception("Cannot create builtin function from name: {}".format(name))
 
 
@@ -31,3 +33,14 @@ class BuiltinFunctionTime(BuiltinFunction):
   
   def evaluate(self, args: List[str]) -> str:
     return dateutil.parser.parse(args[0]).time().strftime('%H:%M:%S')
+
+class BuiltinFunctionDY(BuiltinFunction):
+  """
+  Drop prefixing CNY(¥) sign.
+  """
+  
+  def evaluate(self, args: List[str]) -> str:
+    if args[0].startswith('¥'):
+      return args[0][1:]
+    else:
+      return args[0]

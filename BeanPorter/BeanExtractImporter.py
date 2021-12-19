@@ -98,29 +98,27 @@ class BeanExtractImporter(importer.ImporterProtocol):
     """
     module_dir = os.path.dirname(os.path.abspath(BeanPorter.__file__))
 
-    default_config_file = os.path.join(module_dir, 'bean_extract_config.yaml')
+    root_config_file = os.path.join(module_dir, 'bean_extract_config.yaml')
 
-    paths = [default_config_file]
+    root_config = BXCML.make_with_serialization_at_path(root_config_file)
+
+    if root_config is None:
+      return list()
+
+    paths = []
 
     if isinstance(config_files, str):
       paths.append(config_files)
     if isinstance(config_files, list):
       paths.extend(config_files)
 
-    merged_config_files = list(filter(lambda x : x is not None, [BXCML.make_with_serialization_at_path(p) for p in paths]))
+    user_config_files = list(filter(lambda x : x is not None, [BXCML.make_with_serialization_at_path(p) for p in paths]))
 
-    shared_config: Optional['BXCML'] = None
+    for each_user_config in user_config_files:
+      root_config.extend_with_config(each_user_config)
 
-    for each_config in merged_config_files:
-      each_config.resolve()
-      if shared_config is None:
-        shared_config = each_config
-      else:
-        shared_config.extend_with_config(each_config)
+    root_config.resolve()
 
-    if shared_config is None:
-      return list()
-
-    enabled_importers = filter(lambda i : i.name not in shared_config.disabled_importers, shared_config.importers)
+    enabled_importers = filter(lambda i : i.name not in root_config.disabled_importers, root_config.importers)
     
     return [BeanExtractImporter(i) for i in enabled_importers]

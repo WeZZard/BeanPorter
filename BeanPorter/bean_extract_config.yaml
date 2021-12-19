@@ -34,6 +34,7 @@ importers:
         rules:
           debit_currency: CNY
           credit_currency: CNY
+          payee: $counterparty
           transaction_name: $description
           timestamp: $timestamp
       -
@@ -61,204 +62,41 @@ importers:
           status: 等待确认收货
         rules:
           complete: False
+  -
+    name: WeChatPay
+    probe:
+      file_name:
+        prefix: 微信支付账单
+    strippers:
+      remove_first: 16
+    variables:
       ######################################################################
-      # CREDITS
+      # TABLE HEADER
       ######################################################################
-      -
-        patterns:
-          drcr: 支出
-          my_account: 花呗
-        rules:
-          credit_amount: -$amount
-          credit_account: Liabilities:Online:Huabei
-      -
-        patterns:
-          drcr: 支出
-          my_account: 余额宝
-        rules:
-          credit_amount: -$amount
-          credit_account: Assets:Deposit:Alipay:Yu-E-Bao
-      -
-        patterns:
-          drcr: 支出
-          my_account: ***REMOVED***
-        rules:
-          credit_amount: -$amount
-          credit_account: ***REMOVED***
-      -
-        patterns:
-          drcr: 其他
-          status: 退款成功
-        rules:
-          credit_amount: -$amount
-          credit_account: Expenses:Refund
-      -
-        patterns:
-          drcr: 收入
-          description: r'保险理赔\-卖家版运费险理赔.+'
-          my_account: ''
-          category: 保险
-        rules:
-          credit_amount: -$amount
-          credit_account: Income:InsuranceClaim
-      -
-        patterns:
-          drcr: 其他
-          description: 余额宝-自动转入
-          my_account: 余额
-          category: 投资理财
-        rules:
-          credit_amount: -$amount
-          credit_account: Assets:Deposit:Alipay:Yu-E
+      drcr: 收/支
+      counterparty: 交易对方
+      description: 商品
+      my_account: 支付方式
+      amount: 金额(元)
+      status: 当前状态
+      category: 交易类型
+      system_transaction_id: 交易单号
+      vendor_transaction_id: 商户单号
+      timestamp: 交易时间
+    transformers:
       ######################################################################
-      # DEBITS BY CATEGORY
+      # BASIC SETTINGS
       ######################################################################
       -
         patterns:
-          drcr: 支出
         rules:
-          debit_amount: $amount
-          debit_account: Expenses:Unspecified
+          debit_currency: CNY
+          credit_currency: CNY
+          payee: $counterparty
+          transaction_name: $description
+          timestamp: $timestamp
       -
         patterns:
-          drcr: 支出
-          category: 餐饮美食
+          status: 支付成功
         rules:
-          debit_amount: $amount
-          debit_account: Expenses:Food
-      -
-        patterns:
-          drcr: 支出
-          category: 服饰装扮
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Clothing
-      -
-        patterns:
-          drcr: 支出
-          category: 美容美发
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:PersonalCare
-      -
-        patterns:
-          drcr: 支出
-          category: 日用百货
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:PersonalCare
-      -
-        patterns:
-          drcr: 支出
-          category: 家居家装
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Residential
-      -
-        patterns:
-          drcr: 支出
-          category: 交通出行
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Transport
-      -
-        patterns:
-          drcr: 支出
-          category: 文化休闲
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Entertaining
-      ######################################################################
-      # DEBITS BY DESCRIPTION
-      ######################################################################
-      -
-        patterns:
-          drcr: 支出
-          description: r'菜鸟裹裹-寄件费.+'
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Delivery
-      -
-        patterns:
-          drcr: 支出
-          description: 快件保管费
-          counterparty: 深圳市丰巢科技有限公司
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Delivery
-      -
-        patterns:
-          drcr: 支出
-          description: 手机充值
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Renewal
-      -
-        patterns:
-          drcr: 支出
-          description: r'电费-.+'
-        rules:
-          debit_amount: $amount
-          debit_account: Expenses:Renewal
-      -
-        patterns:
-          drcr: 其他
-          status: 退款成功
-          my_account: ***REMOVED***
-        rules:
-          debit_amount: $amount
-          debit_account: ***REMOVED***
-      -
-        patterns:
-          drcr: 其他
-          status: 退款成功
-          my_account: 花呗
-        rules:
-          debit_amount: $amount
-          debit_account: Liabilities:Online:Huabei
-      -
-        patterns:
-          drcr: 收入
-          description: r'保险理赔\-卖家版运费险理赔.+'
-          my_account: ''
-          category: 保险
-        rules:
-          debit_amount: $amount
-          debit_account: Assets:Deposit:Alipay:Yu-E
-      -
-        patterns:
-          drcr: 其他
-          description: 余额宝-自动转入
-          my_account: 余额
-          category: 投资理财
-        rules:
-          debit_amount: $amount
-          debit_account: Assets:Deposit:Alipay:Yu-E-Bao
-      ######################################################################
-      # TRADE
-      ######################################################################
-      -
-        patterns:
-          drcr: 其他
-          counterparty: 天弘基金管理有限公司
-          my_account: 余额宝
-          category: 投资理财
-        rules:
-          credit_amount: -$amount
-          credit_account: Income:Trade
-          debit_amount: $amount
-          debit_account: Assets:Deposit:Alipay:Yu-E-Bao
-      ######################################################################
-      # PAYMENT
-      ######################################################################
-      -
-        patterns:
-          drcr: 其他
-          counterparty: 花呗
-          my_account: ***REMOVED***
-          category: 信用借还
-        rules:
-          credit_amount: $amount
-          credit_account: Liabilities:Online:Huabei
-          debit_amount: -$amount
-          debit_account: ***REMOVED***
+          complete: True

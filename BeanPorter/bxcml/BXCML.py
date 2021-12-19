@@ -9,6 +9,9 @@ import yaml
 import csv
 import re
 import os
+import logging
+
+from BeanPorter.bxcml.Token import Token
 
 from .ASTContext import ASTContext
 from .Tokenizer import Tokenizer
@@ -71,7 +74,10 @@ class Developer:
     self.is_debug_enabled = is_debug_enabled
 
   @staticmethod
-  def make_with_serialization(serialization):
+  def make_with_serialization(serialization) -> Optional['Developer']:
+    if serialization is None:
+      return None
+    
     if serialization['debug'] is not None:
       is_debug_enabled = serialization['debug'] == True
     else:
@@ -441,8 +447,7 @@ class Importer:
     table_header = TableHeader.make_with_serialization(config.get('table_header'))
     strippers = Stripper.make_strippers_with_serialization(config.get('strippers'))
     variable_map = config.get('variables', dict())
-    tokenizer = Tokenizer()
-    transformers = Transformer.make_transformers_with_serialization(config.get('transformers'), tokenizer)
+    transformers = Transformer.make_transformers_with_serialization(config.get('transformers'), Tokenizer())
 
     return Importer(
       name, 
@@ -559,10 +564,11 @@ class ImporterExtension(Importer):
     assert(isinstance(name, str))
     strippers = Stripper.make_strippers_with_serialization(serialization.get('strippers'))
     variable_map = serialization.get('variables', dict())
-    transformers = Transformer.make_transformers_with_serialization(serialization.get('transformers'))
+    transformers = Transformer.make_transformers_with_serialization(serialization.get('transformers'), Tokenizer())
 
     return ImporterExtension(
       name, 
+      None, # Do not need to check encoding for extensions.
       None, 
       None, 
       strippers, 
@@ -577,8 +583,9 @@ class ImporterExtension(Importer):
     for key in serialization:
       if key.startswith('extends_'):
         name = key.removeprefix('extends_')
-        extension = ImporterExtension.make_with_serialization(serialization[key], extracted_name=name)
-        extensions.append(extension)
+        if serialization[key] is not None:
+          extension = ImporterExtension.make_with_serialization(serialization[key], extracted_name=name)
+          extensions.append(extension)
     return extensions
 
 
@@ -625,10 +632,17 @@ class BXCML:
     self.include_list = include_list
     self.importers = importers
     self.importer_extensions = importer_extensions
+    self._is_resolved = False
   
   def resolve(self):
+    self._resolve(self)
+  
+  def _resolve(self, root: 'BXCML'):
     # Resolves the config. Extends the config's contents with include lists 
     # and importer extensions.
+
+    if self._is_resolved:
+      return
 
     cwd = self.cwd
 
@@ -639,31 +653,32 @@ class BXCML:
       full_include_path = os.path.join(cwd, each_include)
       included_config = BXCML.make_with_serialization_at_path(full_include_path)
       if included_config is not None:
-        self.extend_with_config(included_config)
-    
-    del self.include_list
+        self._extend_with_config(included_config, root)
 
     for each_importer_extension in self.importer_extensions:
-      for each_importer in self.importers:
+      for each_importer in root.importers:
         if each_importer.name == each_importer_extension.name:
           each_importer.extend_with_extension(each_importer_extension)
-    
-    del self.importer_extensions
+
+    self._is_resolved = True
 
   def extend_with_config(self, config: 'BXCML'):
+    self._extend_with_config(config, self)
+
+  def _extend_with_config(self, config: 'BXCML', root_config: 'BXCML'):
     if config == self:
       return
     
     # Resolve the given config firstly. Thus we don't have to process configs
     # referred by its include-lists.
-    config.resolve()
+    config._resolve(root_config)
 
     # Only extends importers. Developer settings and disables importer list
     # hornors root config's setup.
     for each_importer in config.importers:
       existed_importer = next(filter(lambda i: i.name == each_importer.name, self.importers), None)
       if existed_importer is not None:
-        print('Importer with name \"{name}\" have already been there in config at path: {path}'.format(name=each_importer.name, path=self.path))
+        logging.info('Importer with name \"{name}\" have already been there in config at path: {path}'.format(name=each_importer.name, path=self.path))
         continue
       self.importers.append(each_importer)
 

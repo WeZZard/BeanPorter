@@ -47,6 +47,3 @@ def main():
     mindate=None,
     ascending=args.ascending,
     hooks=None)
-
-if __name__ == '__main__':
-  main()
