@@ -20,7 +20,11 @@ setup(name="BeanPorter",
       author_email="me@wezzard.com",
       url="https://github.com/WeZZard/BeanPorter",
       download_url="https://github.com/WeZZard/BeanPorter",
-      packages=find_packages(exclude=['experiments*']),
+      packages=find_packages(where='src'),
+      package_dir={
+        "BeanPorter": "src/BeanPorter",
+        "BeanPorter.bxcml": "src/BeanPorter/bxcml",
+      },
       install_requires = install_requires,
       package_data={
         'BeanPorter': ['bean_extract_config.yaml']

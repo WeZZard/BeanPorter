@@ -3,8 +3,8 @@
 from abc import abstractmethod
 from typing import Optional, Union, Dict, List
 
-from .Token import Token, TokenKind
-from .BuiltinFunctions import BuiltinFunction
+from BeanPorter.bxcml.Token import Token, TokenKind
+from BeanPorter.bxcml.BuiltinFunctions import BuiltinFunction
 
 def _make_indents(indent: int) -> str:
   return ''.join([ '  ' for _ in range(indent)])

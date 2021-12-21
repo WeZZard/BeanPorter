@@ -7,8 +7,6 @@ import argparse
 
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-sys.path.append(".")
-
 from beancount.ingest.extract import extract
 
 from BeanPorter.BeanExtractImporter import BeanExtractImporter
@@ -35,9 +33,11 @@ parser.add_argument(
   default=True,
   help="Ordering.")
 
-args = parser.parse_args()
-
 def main():
+  args = parser.parse_args()
+  if args.file is None or args.config is None:
+    return
+  
   extract(
     BeanExtractImporter.make_importers(args.config), 
     [args.file],

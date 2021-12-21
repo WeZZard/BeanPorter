@@ -3,7 +3,7 @@
 from abc import abstractmethod
 from typing import Dict, Optional
 
-from .Exprs import Expr
+from BeanPorter.bxcml.Exprs import Expr
 
 class Decl(object):
 

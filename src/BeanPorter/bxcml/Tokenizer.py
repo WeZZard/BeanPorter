@@ -4,7 +4,7 @@ from typing import Union, List, Optional
 
 import re
 
-from .Token import Token
+from BeanPorter.bxcml.Token import Token
 
 
 class Tokenizer(object):

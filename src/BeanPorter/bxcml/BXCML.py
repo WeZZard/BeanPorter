@@ -11,11 +11,9 @@ import re
 import os
 import logging
 
-from BeanPorter.bxcml.Token import Token
-
-from .ASTContext import ASTContext
-from .Tokenizer import Tokenizer
-from .Decls import RuleDecl
+from BeanPorter.bxcml.ASTContext import ASTContext
+from BeanPorter.bxcml.Tokenizer import Tokenizer
+from BeanPorter.bxcml.Decls import RuleDecl
 
 from beancount.ingest import cache
 
