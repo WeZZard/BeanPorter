@@ -12,8 +12,8 @@ from beancount.core.amount import Amount
 from beancount.core.number import D as to_decimal
 from beancount.utils.date_utils import parse_date_liberally
 
-from BeanPorter.bxcml.BXCML import Transformer, Importer
-from BeanPorter.bxcml.BXCML import TRANSACTION_PROPERTY_KEYS, REQUIRED_TRANSACTION_PROPERTY_KEYS
+from BeanPorter.bpcml.BPCML import Transformer, Importer
+from BeanPorter.bpcml.BPCML import TRANSACTION_PROPERTY_KEYS, REQUIRED_TRANSACTION_PROPERTY_KEYS
 
 
 class _VariableColumnMap(object):

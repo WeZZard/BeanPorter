@@ -4,7 +4,7 @@
     "-s",
     "${workspaceFolder}/tests",
     "-p",
-    "*Tests.py"
+    "*Tests.py",
   ],
   "python.testing.pytestEnabled": false,
   "python.testing.unittestEnabled": true,

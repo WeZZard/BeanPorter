@@ -1,10 +1,99 @@
-# Usage
+# BeanPorter - A Standalone Configurable BeanCount Importer
+
+## Setup
+
+Install via pip
 
 ```bash
-bean-extract config.py 微信支付账单_xxx.csv/alipay_record_xxx.csv > xxxxxxx.bean
+pip install BeanPorter
 ```
 
-**Notice:The raw data filename can only start with "微信支付账单" or "alipay_record."**
+Install via pipenv
+
+```bash
+pipenv install BeanPorter
+```
+
+## Usage
+
+Import with default rules to beancount file `BEANCOUNT_FILE.beancount`.
+
+```bash
+bean-porter --file BILL_FILE.csv \
+  >> BEANCOUNT_FILE.beancount
+```
+
+Import with custom rules which were written in `CONFIG_FILE.yaml`.
+
+```bash
+bean-porter --config CONFIG_FILE.yaml \
+  --file BILL_FILE.csv \
+  >> BEANCOUNT_FILE.beancount
+```
+
+> By default, `BILL_FILE` can only start with "微信支付账单" or "alipay_record.".
+
+## Configure
+
+You can configure BeanPorter with BeanPorter Configure Markup Language (BPCML).
+BPCML is a domain specific language extended from YAML which helps reduce 
+workload of building rules for importing different bills.
+
+## Contribut to the Project
+
+BeanPorter is envolved from Beancount-CSVImporter done by Shangyan Zhou (aka
+Sphish) -- Though current design of the project is totally different from
+the original one, but the original project's codes help me a lot understand
+how bean-extract works, and shows a result of thinking of configurable
+Beancount bills import program.
+
+Currently, this project is not perfect. There is no diagnostic engine to help
+user find out erroneous in its configuration. At the same time, you may spot
+there are other points can be improved. Any contribution to the project is
+welcome.
+
+### Develop with VSCode
+
+You may fill the following contents to your VSCode's `settings.json` to help
+`python unittest` to discover and run test cases.
+
+```
+{
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "${workspaceFolder}/tests",
+    "-p",
+    "*Tests.py",
+  ],
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": true,
+  "python.testing.cwd": "${workspaceFolder}/src",
+}
+```
+
+## License
+
+MIT
+
+## Understanding BPCML
+
+TODO: enrich this section
+
+## BPCML Language Manual
+
+BPCML is extended from YAML. The differences between BPCML and YAML is that
+there are special secions which instructs BeanPorter to build importing rules.
+
+TODO: enrich this section
+
+## An Example BPCML File
+
+```yaml
+disabled_importers:
+  - Alipay
+  - WeChatPay
+```
 
 ```yaml
 developer:

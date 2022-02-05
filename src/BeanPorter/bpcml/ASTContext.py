@@ -5,11 +5,11 @@ from typing import List, Optional
 import sys
 import logging
 
-from BeanPorter.bxcml.Tokenizer import Tokenizer
-from BeanPorter.bxcml.Token import Token, TokenKind
-from BeanPorter.bxcml.Decls import RuleDecl
-from BeanPorter.bxcml.Exprs import ArithmeticExpr, BoolExpr, Expr, CompoundExpr, FuncArgListExpr, NumExpr, StrLitExpr
-from BeanPorter.bxcml.Exprs import ValueExpr, VarRefExpr, FuncCallExpr
+from BeanPorter.bpcml.Tokenizer import Tokenizer
+from BeanPorter.bpcml.Token import Token, TokenKind
+from BeanPorter.bpcml.Decls import RuleDecl
+from BeanPorter.bpcml.Exprs import ArithmeticExpr, BoolExpr, Expr, CompoundExpr, FuncArgListExpr, NumExpr, StrLitExpr
+from BeanPorter.bpcml.Exprs import ValueExpr, VarRefExpr, FuncCallExpr
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 

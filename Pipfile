@@ -6,8 +6,6 @@ name = "pypi"
 [packages]
 beancount = "*"
 pyyaml = "*"
-jsonpickle = "*"
-fava = "*"
 
 [dev-packages]
 

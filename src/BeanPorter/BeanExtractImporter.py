@@ -13,7 +13,7 @@ import chardet
 from beancount.ingest import importer
 from beancount.ingest import cache
 
-from BeanPorter.bxcml.BXCML import BXCML, Importer
+from BeanPorter.bpcml.BPCML import BPCML, Importer
 
 from BeanPorter.BeanExtractContext import BeanExtractContext
 
@@ -89,16 +89,16 @@ class BeanExtractImporter(importer.ImporterProtocol):
   @staticmethod
   def make_importers(config_files: Optional[Union[str, List[str]]]) -> List['BeanExtractImporter']:
     """
-    Makes importers from .bean_extract_config.yaml and user config files.
+    Makes importers from .bean_porter_config.yaml and user config files.
 
     Disabled importers would not be returned.
 
     """
     module_dir = os.path.dirname(os.path.abspath(__file__))
 
-    root_config_file = os.path.join(module_dir, 'bean_extract_config.yaml')
+    root_config_file = os.path.join(module_dir, 'bean_porter_config.yaml')
 
-    root_config = BXCML.make_with_serialization_at_path(root_config_file)
+    root_config = BPCML.make_with_serialization_at_path(root_config_file)
 
     if root_config is None:
       return list()
@@ -110,7 +110,7 @@ class BeanExtractImporter(importer.ImporterProtocol):
     if isinstance(config_files, list):
       paths.extend(config_files)
 
-    user_config_files = list(filter(lambda x : x is not None, [BXCML.make_with_serialization_at_path(p) for p in paths]))
+    user_config_files = list(filter(lambda x : x is not None, [BPCML.make_with_serialization_at_path(p) for p in paths]))
 
     for each_user_config in user_config_files:
       root_config.extend_with_config(each_user_config)

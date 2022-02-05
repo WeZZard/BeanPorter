@@ -11,9 +11,9 @@ import re
 import os
 import logging
 
-from BeanPorter.bxcml.ASTContext import ASTContext
-from BeanPorter.bxcml.Tokenizer import Tokenizer
-from BeanPorter.bxcml.Decls import RuleDecl
+from BeanPorter.bpcml.ASTContext import ASTContext
+from BeanPorter.bpcml.Tokenizer import Tokenizer
+from BeanPorter.bpcml.Decls import RuleDecl
 
 from beancount.ingest import cache
 
@@ -587,19 +587,19 @@ class ImporterExtension(Importer):
     return extensions
 
 
-class BXCML:
+class BPCML:
 
   @staticmethod
-  def make_with_serialization_at_path(path: str) -> 'BXCML':
+  def make_with_serialization_at_path(path: str) -> 'BPCML':
     with open(path, 'r') as config_file:
       serialization = yaml.safe_load(config_file)
-      config = BXCML.make_with_serialization(serialization)
+      config = BPCML.make_with_serialization(serialization)
       config.cwd = os.path.dirname(path)
       config.path = path
       return config
 
   @staticmethod
-  def make_with_serialization(serialization: Optional[Dict]) -> 'BXCML':
+  def make_with_serialization(serialization: Optional[Dict]) -> 'BPCML':
     if serialization is not None:
       developer = Developer.make_with_serialization(serialization.get('developer'))
       disabled_importers = serialization.get('disabled_importers', list())
@@ -615,7 +615,7 @@ class BXCML:
       importers = list()
       importer_extensions = list()
     
-    return BXCML(developer, disabled_importers, include_list, importers, importer_extensions)
+    return BPCML(developer, disabled_importers, include_list, importers, importer_extensions)
 
   def __init__(
     self, 
@@ -635,7 +635,7 @@ class BXCML:
   def resolve(self):
     self._resolve(self)
   
-  def _resolve(self, root: 'BXCML'):
+  def _resolve(self, root: 'BPCML'):
     # Resolves the config. Extends the config's contents with include lists 
     # and importer extensions.
 
@@ -649,7 +649,7 @@ class BXCML:
     
     for each_include in self.include_list:
       full_include_path = os.path.join(cwd, each_include)
-      included_config = BXCML.make_with_serialization_at_path(full_include_path)
+      included_config = BPCML.make_with_serialization_at_path(full_include_path)
       if included_config is not None:
         self._extend_with_config(included_config, root)
 
@@ -660,10 +660,10 @@ class BXCML:
 
     self._is_resolved = True
 
-  def extend_with_config(self, config: 'BXCML'):
+  def extend_with_config(self, config: 'BPCML'):
     self._extend_with_config(config, self)
 
-  def _extend_with_config(self, config: 'BXCML', root_config: 'BXCML'):
+  def _extend_with_config(self, config: 'BPCML', root_config: 'BPCML'):
     if config == self:
       return
     

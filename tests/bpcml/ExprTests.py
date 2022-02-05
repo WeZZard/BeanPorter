@@ -2,9 +2,9 @@
 
 import unittest
 
-from BeanPorter.bxcml.Exprs import ArithmeticExpr, NumExpr, StrLitExpr, VarRefExpr
-from BeanPorter.bxcml.Exprs import FuncArgListExpr, FuncCallExpr
-from BeanPorter.bxcml.Token import Token
+from BeanPorter.bpcml.Exprs import ArithmeticExpr, NumExpr, StrLitExpr, VarRefExpr
+from BeanPorter.bpcml.Exprs import FuncArgListExpr, FuncCallExpr
+from BeanPorter.bpcml.Token import Token
 
 
 class ExprTests(unittest.TestCase):

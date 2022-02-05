@@ -2,8 +2,8 @@
 
 import unittest
 
-from BeanPorter.bxcml.Tokenizer import Tokenizer
-from BeanPorter.bxcml.Token import Token
+from BeanPorter.bpcml.Tokenizer import Tokenizer
+from BeanPorter.bpcml.Token import Token
 
 
 class TokenizerTests(unittest.TestCase):
